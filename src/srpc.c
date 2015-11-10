@@ -11,24 +11,10 @@
 
 #include "srpc.h"
 #include "srpc_network.h"
+#define HOSTNAME "127.0.0.1"
 
-Srpc_Status Srpc_ClientInit(
-    unsigned int timeout, /* milliseconds before retransmitting */
-    unsigned int retries /* max # retries before SRPC_TIMEOUT */)
-{
-
-  return SRPC_ERR_OK;
-}
-
-Srpc_Status Srpc_ServerInit(
-    unsigned short port,     /* port on which to listen */
-    unsigned int timeout,     /* milliseconds before retransmitting */
-    unsigned int retries    /* max # retries before SRPC_TIMEOUT */)
-{
-
-  return SRPC_ERR_OK;
-
-}
+Srpc_net_info *client_netinfo;
+Srpc_net_info *server_netinfo;
 
 void Srpc_FreeArgs(
     Srpc_Arg args[])        /* Arg array to be freed. */
@@ -68,7 +54,8 @@ return SRPC_ERR_OK;
 
 Srpc_Status Srpc_Server(void)
 {
-return SRPC_ERR_OK;
+    /* now loop, receiving data and printing what we received */
+  return 0;
 }
 
 Srpc_Status Srpc_ClientExit(void)
@@ -83,9 +70,50 @@ return SRPC_ERR_OK;
 
 }
 
-char *Srpc_StatusMsg(Srpc_Status status)
+char *Srpc_StatusMsg(Srpc_Status status) {
+  switch (status){
+    case 0: return "SRPC_ERR_OK";
+    case 1: return "SRPC_ERR_TIMEOUT";
+    case 2: return "SRPC_ERR_REBOOT";
+    case 3: return "SRPC_ERR_ALREADY_INITIALIZED";
+    case 4: return "SRPC_ERR_PORT_INUSE";
+    case 5: return "SRPC_ERR_ALREADY_BOUND";
+    case 6: return "SRPC_ERR_NO_FUNCTION";
+    case 7: return "SRPC_ERR_NO_SERVER";
+    case 8: return "SRPC_ERR_ARGS_TOO_BIG";
+    case 9: return "SRPC_ERR_INVALID_ARG_TYPE";
+    case 10: return "SRPC_ERR_UNINITIALIZED";
+    case 11: return "SRPC_ERR_ALREADY_EXPORTED";
+    case 12: return "SRPC_ERR_WRONG_NUM_ARGS";
+    default: return NULL;
+  }
+}
+
+
+Srpc_Status Srpc_ClientInit(
+    unsigned int timeout, /* milliseconds before retransmitting */
+    unsigned int retries /* max # retries before SRPC_TIMEOUT */)
+{
+    if (cli_serv_init > 0) return SRPC_ERR_ALREADY_INITIALIZED;
+    printf("cli_init func: trying\n");
+    client_netinfo = malloc(sizeof(Srpc_net_info));
+    init_netinfo(client_netinfo, HOSTNAME, SERVICE_PORT);
+
+    return SRPC_ERR_OK;
+
+}
+
+
+Srpc_Status Srpc_ServerInit(
+    unsigned short port,     /* port on which to listen */
+    unsigned int timeout,     /* milliseconds before retransmitting */
+    unsigned int retries    /* max # retries before SRPC_TIMEOUT */)
 {
 
-return 'j';
+    printf("init server func: trying\n");
+    server_netinfo = malloc(sizeof(Srpc_net_info));
+    init_netinfo(server_netinfo, HOSTNAME, port);
+    return SRPC_ERR_OK;
+
 }
 
