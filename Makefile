@@ -1,9 +1,8 @@
 CC=gcc
-INCLUDE=$(shell pkg-config --cflags glib-2.0)
 
-CFLAGS=-g -std=gnu99 -O2 -Wall -Isrc -DNDEBUG $(OPTFLAGS) $(INCLUDE)
+CFLAGS=-g -std=gnu99 -O2 -Wall -Isrc -DNDEBUG $(OPTFLAGS) 
 
-LDFLAGS=-ldl $(OPTLIBS) $(shell pkg-config --libs glib-2.0)
+LDFLAGS=-ldl $(OPTLIBS) 
 PREFIX=./build
 
 SOURCES=$(wildcard src/**/*.c src/*.c)
@@ -12,14 +11,12 @@ OBJECTS=$(patsubst %.c,%.o,$(SOURCES))
 TEST_SRC=$(wilcard tests/*_tests.c)
 TESTS=$(patsubst %.c,%,$(TEST_SRC))
 
-TARGET=build/libunmthread.a
-#SO_TARGET=$(patsubst %.a,%.so,$(TARGET))
-EXECUTEABLE=threads
+TARGET=build/libsrpc.a
 
 
-all: $(TARGET) $(EXECUTEABLE)
+all: $(TARGET)
 
-dev: CFLAGS=-g -std=gnu99 -Wall -Isrc -Wextra -DEBUG $(OPTFLAGS) $(INCLUDE)
+dev: CFLAGS=-g -std=gnu99 -Wall -Isrc -Wextra -DEBUG $(OPTFLAGS) 
 dev: all
 
 $(TARGET): CFLAGS += -fPIC
@@ -48,15 +45,13 @@ valgrind:
 	VALGRIND="valgrind --log-file=/tmp/valgrind-%p.log" $(MAKE)
 
 clean:
-	rm -rf build $(OBJECTS) $(TESTS)
+	rm -rf build/$(OBJECTS)
+	rm $(TARGET)
 	rm -f tests/tests.lob
 	rm $(EXECUTEABLE)
 	find . -name "*.gc*" -exec rm {} \;
 	rm -rf `find . -name "*.dSYM" -print`
 
-install: all
-	install -d $(DESTDIR)/$(PREFIX)/lib/
-	install $(TARGET) $(DESTDIR)/$(PREFIX)/lib
 
 BADFUNCS='[^_.>a-zA-Z0-9](str(n?cpy|n?cat|xfrm|n?dup|str|pbrk|tok|_)|stpn?cpy|a?sn?printf|byte_)'
 
