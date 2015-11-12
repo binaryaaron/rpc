@@ -70,3 +70,20 @@ int make_socket (uint16_t port)
 }
 
 
+
+/* duplicate replies = sequence numbers on things */
+
+/* ####### select example ########### */
+/* timeouts in ms to different socket format */
+/* while (retries > 0 ){ */
+/*   sendto(sock, ...); */
+/*   FDSET(fds, sock); */
+/*   n = select(&fds, ..., timeout); */
+/*   if (n) { */
+/*     recvfrom(...); */
+/*     break; */
+/*   } */
+/*   else retries--; */
+/* } */
+
+

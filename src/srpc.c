@@ -11,10 +11,25 @@
 
 #include "srpc.h"
 #include "srpc_network.h"
+#include "hashmap.h"
+
 #define HOSTNAME "127.0.0.1"
 
 Srpc_net_info *client_netinfo;
 Srpc_net_info *server_netinfo;
+map_t function_table;
+
+static void Error(char *msg, Srpc_Status status) {
+  fprintf(stderr, "%s: %s\n", msg, Srpc_StatusMsg(status));
+  exit(1);
+}
+
+typedef struct f_values
+{
+    Srpc_Function *f;
+    void *f_data;
+} f_values;
+
 
 void Srpc_FreeArgs(
     Srpc_Arg args[])        /* Arg array to be freed. */
@@ -43,13 +58,39 @@ Srpc_Status Srpc_Call(
 return SRPC_ERR_OK;
 }
 
-Srpc_Status Srpc_Export(
-    char *name,         /* Name to export */
-    Srpc_Function *function,     /* Function to invoke */
-    void *functionData)     /* Opaque data passed to function */
+  /*
+   * may need a bit more here - perhaps the little tuple DS i have isn't going
+   * to work on retrevial
+   * functiondata: pointer to opaque data
+   */
+Srpc_Status Srpc_Export(char *name, Srpc_Function *function, void *functionData)
 {
+    int error;
+    printf("Debug: exporting function %s to function table\n", name);
+    f_values *function_holder;
+    function_holder = malloc(sizeof(f_values));
+    function_holder->f = function;
+    function_holder->f_data = functionData;
 
-return SRPC_ERR_OK;
+    error = hashmap_put(function_table, name, (void *) function_holder);
+    if (error != 0){
+      printf("error assigning function to table\n");
+      return SRPC_ERR_ALREADY_INITIALIZED;
+    }
+
+    error = hashmap_get(function_table, name, (void **) function_holder);
+    if (error != 0){
+      printf("error assigning function to table\n");
+      return SRPC_ERR_ALREADY_INITIALIZED;
+    }
+
+    printf("getting function back\n");
+    if (function_holder->f == function) printf("success on getting function\n");
+    function_holder = NULL;
+    free(function_holder);
+
+
+  return SRPC_ERR_OK;
 }
 
 Srpc_Status Srpc_Server(void)
@@ -113,6 +154,7 @@ Srpc_Status Srpc_ServerInit(
     printf("init server func: trying\n");
     server_netinfo = malloc(sizeof(Srpc_net_info));
     init_netinfo(server_netinfo, HOSTNAME, port);
+    function_table = hashmap_new();
     return SRPC_ERR_OK;
 
 }
