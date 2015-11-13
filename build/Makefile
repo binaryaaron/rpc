@@ -1,16 +1,17 @@
 all: client server
 
 client:
-	gcc -Wall -ansi -L. -lsrpc -o client test_client.c
+	gcc -Wall -std=gnu99 -I../src -L. -lsrpc -o client test_client.c
 
 server:
-	gcc -Wall -ansi -L. -lsrpc -o server test_server.c
+	gcc -Wall -std=gnu99 -I../src -L. -lsrpc -o server test_server.c
 
 clean:
+	rm test
 	rm server
 	rm client
 
 tests:
-	gcc -Wall -ansi -L. -I../src -lsrpc -o test marshalling_test.c
+	gcc -Wall -std=gnu99 -I../src -L. -lsrpc marshalling_test.c -o test
 
 
