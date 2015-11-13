@@ -23,7 +23,7 @@
 
 int *arg_to_int(Srpc_Arg *arg);
 
-char *arg_to_c(Srpc_Arg *arg);
+unsigned char *arg_to_c(Srpc_Arg *arg);
 
 void print_args(Srpc_Arg *arg);
 
@@ -42,14 +42,15 @@ Srpc_Arg *arg_maker(Srpc_Type t, unsigned int size, void *data);
 /*
  * unpack function into pre-allocated arg pointed at (dest)
  */
-Srpc_Status Srpc_unpack_args(char *buf, Srpc_Arg *dest);
-int srpc_unpack_type(char *buf);
+Srpc_Status Srpc_unpack_args(unsigned char *buf, Srpc_Arg *dest);
+int srpc_unpack_type(unsigned char *buf);
 
-Srpc_Status Srpc_pack_args(Srpc_Arg *pa, char *buf);
+Srpc_Status Srpc_pack_args(Srpc_Arg *pa, unsigned char *buf);
 
 
-void print_buffer_bytes(char *bufptr, int n);
+void print_buffer_bytes(unsigned char *bufptr, int n);
 
+Srpc_Arg *unpack_args(unsigned char *buf);
 
 
 
