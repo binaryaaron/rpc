@@ -6,8 +6,8 @@
  * Modified by Pete Warden to fix a serious performance problem, support strings as keys
  * and removed thread synchronization - http://petewarden.typepad.com
  */
-#ifndef __HASHMAP_H__
-#define __HASHMAP_H__
+#ifndef __HASHMAP_H
+#define __HASHMAP_H
 
 #define MAP_MISSING -3  /* No such element */
 #define MAP_FULL -2 	/* Hashmap is full */
@@ -78,4 +78,4 @@ extern void hashmap_free(map_t in);
  */
 extern int hashmap_length(map_t in);
 
-#endif __HASHMAP_H__
+#endif
