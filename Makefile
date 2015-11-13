@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS=-g -std=gnu99 -O2 -Wall -Isrc -DNDEBUG $(OPTFLAGS) 
+CFLAGS=-g -std=gnu99 -Wall -Isrc -DNDEBUG $(OPTFLAGS) 
 
 LDFLAGS=-ldl $(OPTLIBS) 
 PREFIX=./build
