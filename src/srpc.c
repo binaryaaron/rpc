@@ -11,6 +11,7 @@
 
 #include "srpc.h"
 #include "srpc_network.h"
+#include "marshalling.h"
 #include "hashmap.h"
 
 #define HOSTNAME "127.0.0.1"
