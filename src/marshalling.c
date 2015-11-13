@@ -1,8 +1,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "srpc.h"
+#include "marshalling.h"
 
 /* typedef int Srpc_Type; */
 
@@ -27,8 +29,9 @@ char * arg_to_c(Srpc_Arg *arg){
 
 void print_args(Srpc_Arg *arg){
   printf("SRPC ARG:\n");
-  printf("type: %d \n", arg->type);
-  printf("size: %d \n", arg->size);
+  printf("---- type: %d \n", arg->type);
+  printf("---- size: %d \n", arg->size);
+  printf("---- \n");
 
 }
 
@@ -52,31 +55,55 @@ Srpc_Arg *arg_maker(Srpc_Type t, unsigned int size, void *data){
     return arg;
 }
 
+
+int srpc_unpack_type(char *buf)
+{
+  char *bytes;
+  int dtype;
+
+  bytes = (char *) malloc(sizeof(int));
+
+  memmove(bytes, buf, sizeof(int));
+  /* memcpy(bytes, buf, 5); */
+  /* buf += sizeof(int); */
+  dtype = * (int *) bytes;
+  print_buffer_bytes(bytes, sizeof(int));
+  free(bytes);
+
+  return dtype;
+
+}
+
+
 Srpc_Status Srpc_unpack_args(char *buf, Srpc_Arg *dest){
   char argtype[4];
   char argsize[4];
   char *argdata;
-  char *curr;
-  curr = buf;
+  unsigned int uint32;
 
 
-    memcpy(argtype, buf, sizeof(argtype));    
-    unsigned int type_u32 = atoi(argtype);
-    dest->type = type_u32;
-    printf("%d\n", type_u32);
-    curr += sizeof(type_u32);
+  printf("Buffer address: %p\n", (void *)buf);
 
-    memcpy(argsize, buf, sizeof(argsize));
-    unsigned int size_u32 = atoi(argsize);
-    dest->size = size_u32;
-    printf("%d\n", size_u32);
-    curr += sizeof(size_u32);
+    memcpy(argtype, buf, sizeof(int));    
+    /* unsigned int type_u32 = atoi(argtype); */
+    dest->type = (int) argtype[0];
+    /* printf("%d\n", type_u32); */
+    buf += sizeof(int);
 
+    printf("copying size to new arg\n");
+    printf("Buffer address: %p\n", (void *)buf);
+
+    memcpy(argsize, buf, sizeof(uint32));
+    /* unsigned int size_u32 = atoi(argsize); */
+    dest->size = (unsigned int) argsize[0];
+    /* printf("%d\n", size_u32); */
+    buf += sizeof(unsigned int);
+
+  printf("Buffer address: %p\n", (void *)buf);
     // handle case here? decrement while loop and read sizeof(var) chunks?
-    char data[size_u32];
-    memcpy(data, curr, sizeof(size_u32));
+    char data[dest->size];
+    memcpy(data, buf, dest->size);
     dest->value = (void *)data;
-    printf("%s\n", data);
 
     return 0;
 
@@ -96,6 +123,7 @@ Srpc_Status Srpc_pack_args(Srpc_Arg *pa, char *buf){
     switch (pa->type){
 
       case SRPC_TYPE_INT:
+        printf("debug: pack args: switching on int type\n");
         // assign based on size
         switch (pa->size){
           case 1:
@@ -130,36 +158,19 @@ Srpc_Status Srpc_pack_args(Srpc_Arg *pa, char *buf){
 
 
 
+void print_buffer_bytes(char *bufptr, int n){
+    int i = 0;
+    char *byte_array = bufptr;
 
-int main(void){
-
-
-
-    char* buf = "00010004blah";
-    char type[4], size[4];
-    Srpc_Arg *a;
-
-    memcpy(type, buf, sizeof(type));    
-    unsigned int type_u32 = atoi(type);
-    printf("%d\n", type_u32);
-
-    buf += sizeof(type_u32) + 8;
-    memcpy(size, buf, sizeof(size));    
-    unsigned int size_u32 = atoi(size);
-    printf("%d\n", size_u32);
-
-    buf += sizeof(size_u32);
-    char data[size_u32];
-    memcpy(data, buf, sizeof(size_u32));    
-    printf("%s\n", data);
-    printf("------------------\n");
-
-    char *buf2 = "00010004blah";
-    a = _arg_maker();
-    Srpc_unpack_args(buf2, a);
-    print_args(a);
+    printf("---Printing the bytes in the buffer---\n");
+    while (i < n)
+    {
+         printf("%02X", (int)byte_array[i]);
+         i++;
+         if (i % 4 == 0) printf(" ");
+    }
+    printf("\n\n\n");
 
 
-
-    return 0;
 }
+
