@@ -62,11 +62,7 @@ void test_unpack_size(unsigned char *buf, Srpc_Arg *in){
     int dtype = srpc_unpack_type(buf);
     debug("Dtype unpacked: %d\n", dtype);
 
-
     assert(in->type == dtype);
-/*     Srpc_Type type; // Type of argument */
-/*     unsigned int size; // Size of arg, in bytes. */
-/*     void *value; // Value */
 
 }
 
@@ -76,8 +72,8 @@ void test_unpack(Srpc_Type type){
     Srpc_Arg *in;
     Srpc_Arg *dest;
     unsigned char *out_buf;
-    unsigned char string[] = "fuck";
-    int myint = 42;
+    unsigned char string[] = "fuck your face you shithead cock";
+    int myint = 1 << 10;
     /* out_buf = (unsigned char *) malloc(sizeof(12)); */
     int dtype;
     log_info("----test marshalling----: unpacking type\n");
@@ -92,7 +88,7 @@ void test_unpack(Srpc_Type type){
         debug("making data arg");
         in = arg_maker(SRPC_TYPE_DATA, sizeof(string), (void *) string);
         print_args(in);
-        out_buf = (unsigned char *) malloc(sizeof(string + sizeof(int) + sizeof(int)));
+        out_buf = (unsigned char *) malloc(sizeof(string + (2 * sizeof(int))));
     }
 
     /* print_args(in); */
@@ -107,7 +103,17 @@ void test_unpack(Srpc_Type type){
 
     assert(in->type == dest->type);
     assert(in->size == dest->size);
-    assert((char *) in->value == (char *) dest->value);
+    switch (type){
+
+      case SRPC_TYPE_INT:
+        /* assert( ((int *)in->value) ==  ((int *)dest->value)); */
+        assert(arg_to_int(in) == arg_to_int(dest));
+        break;
+
+      case SRPC_TYPE_DATA:
+        assert(strcmp((char *) in->value, (char *) dest->value) == 0);
+        break;
+    }
 
     log_info ("Unpack %d TEST PASSED: ", type);
 

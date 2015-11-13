@@ -3,65 +3,57 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <arpa/inet.h>
+
 #include "dbg.h"
-
-
 #include "srpc.h"
 #include "marshalling.h"
 
-/* typedef int Srpc_Type; */
-
-/* #define SRPC_TYPE_NONE        0 */
-/* #define SRPC_TYPE_INT         1 */
-/* #define SRPC_TYPE_DATA        2 */
-
-/* typedef struct Srpc_Arg { */
-/*     Srpc_Type type; // Type of argument */
-/*     unsigned int size; // Size of arg, in bytes. */
-/*     void *value; // Value */
-/* } Srpc_Arg; */
-
-
-int * arg_to_int(Srpc_Arg *arg){
+int *arg_to_int(Srpc_Arg *arg){
   return (int *)arg->value;
 }
 
-unsigned char * arg_to_c(Srpc_Arg *arg){
-  return (unsigned char *)arg->value;
+char *arg_to_str(Srpc_Arg *arg){
+  return (char *) arg->value;
 }
 
 void print_args(Srpc_Arg *arg){
-  debug("SRPC ARG:\n");
-  debug("---- type: %d \n", arg->type);
-  debug("---- size: %d \n", arg->size);
+  log_info("SRPC ARG at %p:", (void *) arg);
+
+  log_info("---- type: %d", arg->type);
+  log_info("---- size: %d", arg->size);
   if (arg->value != NULL){
     if (arg->type == SRPC_TYPE_INT)
-      debug("---- value: %d \n", arg->value);
+      log_info("---- value: %d", arg->value);
     if (arg->type == SRPC_TYPE_DATA)
-      debug("---- value: %s\n", arg->value);
+      log_info("---- value: %s", arg->value);
   }
   else {
 
-      debug("---- value: is null\n\n");
+      log_info("---- value: is null");
   }
-  debug("---- \n");
+  log_info("----");
 
 }
 
+/*
+ * helper function to allocate a new arg. 
+ * initializes the arg to have size 0 and invalid type
+ */
 Srpc_Arg *_arg_maker(){
     Srpc_Arg *arg;
     arg = malloc(sizeof(Srpc_Arg));
     arg->type = -1;
-    arg->size = -1;
+    arg->size = 0;
     arg->value = NULL;
     return arg;
 }
 
 
-
+/*
+ * intializes an Srpc_Arg with the values passed to it
+ */
 Srpc_Arg *arg_maker(Srpc_Type t, unsigned int size, void *data){
-    Srpc_Arg *arg;
-    arg = malloc(sizeof(Srpc_Arg));
+    Srpc_Arg *arg = _arg_maker();
     arg->type = t;
     arg->size = size;
     arg->value = data;
@@ -69,30 +61,34 @@ Srpc_Arg *arg_maker(Srpc_Type t, unsigned int size, void *data){
 }
 
 
+/*
+ * function that gets the type of an arg
+ */
 int srpc_unpack_type(unsigned char *buf)
 {
   unsigned char bytes[4];
   int dtype = 0;
 
-  /* bytes = (unsigned char *) malloc(sizeof(int)); */
-
-  /* print_buffer_bytes(buf, 4* sizeof(int)); */
-  /* memmove(&dtype, buf, sizeof(int)); */
   memcpy(bytes, buf, sizeof(int));
+  /*
+   * we only need to take the 'first' byte of the number; it's
+   * only 0, 1, or 2
+   */
   dtype |= bytes[3];
-  /* print_buffer_bytes(buf, sizeof(int)); */
-  /* print_buffer_bytes(bytes, sizeof(int)); */
-  /* free(bytes); */
 
   return dtype;
 
 }
 
+/*
+ * function that gets the number of bytes contained in the message
+ */
 int srpc_unpack_argsize(unsigned char *buf)
 {
   unsigned char bytes[4];
   int argsize = 0;
 
+  /* could forgo memcpy i think and just assign it directly, but whatever*/
   memcpy(bytes, buf, sizeof(int));
   argsize = bytes[3];
 
@@ -100,6 +96,10 @@ int srpc_unpack_argsize(unsigned char *buf)
 
 }
 
+/*
+ * uses a bit of bitshifting to get out integers values and memcpying to get
+ * out void values
+ */
 void * srpc_unpack_value(unsigned char *buf, Srpc_Type type, int size){
 
   unsigned char bytes[size];
@@ -128,6 +128,9 @@ void * srpc_unpack_value(unsigned char *buf, Srpc_Type type, int size){
 
 
 
+/* function that wraps the unpacking functions. takes the buffer and returns a
+ * packed argument 
+ */
 Srpc_Arg *unpack_args(unsigned char *buf){
   unsigned char *ptr = buf;
   Srpc_Type dt = srpc_unpack_type(ptr);
@@ -141,6 +144,9 @@ Srpc_Arg *unpack_args(unsigned char *buf){
 
 }
 
+/*
+ * packs the argument into a buffer.
+ */
 Srpc_Status Srpc_pack_args(Srpc_Arg *pa, unsigned char *buf){
   /* code from patrick */
   int nErr = SRPC_ERR_OK;
