@@ -35,31 +35,6 @@ void print_args(Srpc_Arg *arg){
 
 }
 
-/*
- * helper function to allocate a new arg. 
- * initializes the arg to have size 0 and invalid type
- */
-Srpc_Arg *_arg_maker(){
-    Srpc_Arg *arg;
-    arg = malloc(sizeof(Srpc_Arg));
-    arg->type = -1;
-    arg->size = 0;
-    arg->value = NULL;
-    return arg;
-}
-
-
-/*
- * intializes an Srpc_Arg with the values passed to it
- */
-Srpc_Arg *arg_maker(Srpc_Type t, unsigned int size, void *data){
-    Srpc_Arg *arg = _arg_maker();
-    arg->type = t;
-    arg->size = size;
-    arg->value = data;
-    return arg;
-}
-
 
 /*
  * function that gets the type of an arg
@@ -144,8 +119,17 @@ Srpc_Arg *unpack_args(unsigned char *buf){
 
 }
 
+int check_if_header(Srpc_Arg *arg){
+
+
+
+}
+
+
+
+
 /*
- * packs the argument into a buffer.
+ * packs the argument into a buffer. code comes from Patrick Bridges.
  */
 Srpc_Status Srpc_pack_args(Srpc_Arg *pa, unsigned char *buf){
   /* code from patrick */
@@ -180,7 +164,6 @@ Srpc_Status Srpc_pack_args(Srpc_Arg *pa, unsigned char *buf){
         break;
 
       case SRPC_TYPE_DATA:
-        /* debug("pack args: switching on data type\n"); */
         memcpy(p, pa->value, pa->size);
         break;
       default:
@@ -197,6 +180,7 @@ Srpc_Status Srpc_pack_args(Srpc_Arg *pa, unsigned char *buf){
 
 
 
+/* helper function to print out a buffer's byte contents */
 void print_buffer_bytes(unsigned char *bufptr, int n){
     int i = 0;
     unsigned char *byte_array = bufptr;

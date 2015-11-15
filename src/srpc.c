@@ -11,6 +11,7 @@
 
 #include "srpc.h"
 #include "srpc_network.h"
+#include "srpc_client.h"
 #include "marshalling.h"
 #include "hashmap.h"
 
@@ -25,12 +26,6 @@ static void Error(char *msg, Srpc_Status status) {
   exit(1);
 }
 
-typedef struct f_values
-{
-    Srpc_Function *f;
-    void *f_data;
-} f_values;
-
 
 void Srpc_FreeArgs(
     Srpc_Arg args[])        /* Arg array to be freed. */
@@ -38,16 +33,6 @@ void Srpc_FreeArgs(
 // don't blow this up
 }
 
-Srpc_Status Srpc_Bind(
-    char *function,       /* Name of function to which to bind */
-    char *server,         /* Server's DNS name */
-    unsigned short port,  /* Server's port */
-    Srpc_Handle *handle)  /* (Out) handle for Srpc_Call */
-{
-
-  return SRPC_ERR_OK; // okay
-
-}
 
 Srpc_Status Srpc_Call(
     Srpc_Handle handle,        /* Returned by Srpc_Bind */
@@ -57,47 +42,6 @@ Srpc_Status Srpc_Call(
 {
 
 return SRPC_ERR_OK;
-}
-
-  /*
-   * may need a bit more here - perhaps the little tuple DS i have isn't going
-   * to work on retrevial
-   * functiondata: pointer to opaque data
-   */
-Srpc_Status Srpc_Export(char *name, Srpc_Function *function, void *functionData)
-{
-    int error;
-    printf("Debug: exporting function %s to function table\n", name);
-    f_values *function_holder;
-    function_holder = malloc(sizeof(f_values));
-    function_holder->f = function;
-    function_holder->f_data = functionData;
-
-    error = hashmap_put(function_table, name, (void *) function_holder);
-    if (error != 0){
-      printf("error assigning function to table\n");
-      return SRPC_ERR_ALREADY_INITIALIZED;
-    }
-
-    error = hashmap_get(function_table, name, (void **) function_holder);
-    if (error != 0){
-      printf("error assigning function to table\n");
-      return SRPC_ERR_ALREADY_INITIALIZED;
-    }
-
-    printf("getting function back\n");
-    if (function_holder->f == function) printf("success on getting function\n");
-    function_holder = NULL;
-    free(function_holder);
-
-
-  return SRPC_ERR_OK;
-}
-
-Srpc_Status Srpc_Server(void)
-{
-    /* now loop, receiving data and printing what we received */
-  return 0;
 }
 
 Srpc_Status Srpc_ClientExit(void)
@@ -132,31 +76,29 @@ char *Srpc_StatusMsg(Srpc_Status status) {
 }
 
 
-Srpc_Status Srpc_ClientInit(
-    unsigned int timeout, /* milliseconds before retransmitting */
-    unsigned int retries /* max # retries before SRPC_TIMEOUT */)
-{
-    if (cli_serv_init > 0) return SRPC_ERR_ALREADY_INITIALIZED;
-    printf("cli_init func: trying\n");
-    client_netinfo = malloc(sizeof(Srpc_net_info));
-    init_netinfo(client_netinfo, HOSTNAME, SERVICE_PORT);
-
-    return SRPC_ERR_OK;
-
+/*
+ * helper function to allocate a new arg. 
+ * initializes the arg to have size 0 and invalid type
+ */
+Srpc_Arg *_arg_maker(){
+    Srpc_Arg *arg;
+    arg = malloc(sizeof(Srpc_Arg));
+    arg->type = -1;
+    arg->size = 0;
+    arg->value = NULL;
+    return arg;
 }
 
 
-Srpc_Status Srpc_ServerInit(
-    unsigned short port,     /* port on which to listen */
-    unsigned int timeout,     /* milliseconds before retransmitting */
-    unsigned int retries    /* max # retries before SRPC_TIMEOUT */)
-{
-
-    printf("init server func: trying\n");
-    server_netinfo = malloc(sizeof(Srpc_net_info));
-    init_netinfo(server_netinfo, HOSTNAME, port);
-    function_table = hashmap_new();
-    return SRPC_ERR_OK;
-
+/*
+ * intializes an Srpc_Arg with the values passed to it
+ */
+Srpc_Arg *arg_maker(Srpc_Type t, unsigned int size, void *data){
+    Srpc_Arg *arg = _arg_maker();
+    arg->type = t;
+    arg->size = size;
+    arg->value = data;
+    return arg;
 }
+
 

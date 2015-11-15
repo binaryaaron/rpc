@@ -13,5 +13,7 @@ clean:
 
 tests:
 	gcc -g -Wall -std=gnu99 -I../src -L. -lsrpc -Wextra -DEBUG marshalling_test.c -o test
+	gcc -g -Wall -std=gnu99 -I../src -L. -lsrpc -Wextra -DEBUG exampleServer.c -o server
+	gcc -g -Wall -std=gnu99 -I../src -L. -lsrpc -Wextra -DEBUG exampleClient.c -o client
 
 
